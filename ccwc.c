@@ -153,15 +153,6 @@ int main(int argc, char** argv){
             stop = 0;
             
             f = (f.ptr==stdin) ? copy(&f) : f;
-        case 'c':
-            sprintf(buff, "%d", character_count(f.ptr));
-            strcat(str, buff);
-            strcat(str, " ");
-            if(stop){
-                break;
-            }else{
-                rewind(f.ptr);
-            }
         case 'l':
             sprintf(buff, "%d", line_count(f.ptr));
             strcat(str, buff);
@@ -173,6 +164,15 @@ int main(int argc, char** argv){
             }
         case 'w':
             sprintf(buff, "%d", word_count(f.ptr));
+            strcat(str, buff);
+            strcat(str, " ");
+            if(stop){
+                break;
+            }else{
+                rewind(f.ptr);
+            }
+        case 'c':
+            sprintf(buff, "%d", character_count(f.ptr));
             strcat(str, buff);
             strcat(str, " ");
             break;
