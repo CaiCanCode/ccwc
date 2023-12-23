@@ -5,7 +5,7 @@
 
    M. Williams - 2023-12-19
 
-   version one(1) - 2023-12-21
+   version 1.1 - 2023-12-22
 */
 
 #include <stdio.h>
@@ -104,11 +104,12 @@ file get_filename(int argc, char** argv){
             f.name = argv[idx];
             break;
         default:
-            fprintf(stderr, "Sorry, we only support 0 or 1 arguments and 0 or 1 flags at this time. If I haven't written a manual entry yet I'll definitely do so later.\n");
-            exit(1);
+            fprintf(stderr, "Sorry, we only support 0 or 1 arguments and 0 or 1 options at this time. If I haven't written a manual entry yet I'll definitely do so later.\n");
+            exit(2);
     }
     if(!f.ptr){
         fprintf(stderr, "couldn't open file\n");
+        exit(1);
     }
     return f;
 }
@@ -117,7 +118,7 @@ char get_option(int argc, char** argv){
     if(argc > 1 && *(argv[1]) == '-'){
         return (argv[1])[1];
     }
-    return 0;
+    return '/0';
 }
 
 file copy(file* f){
@@ -149,10 +150,13 @@ int main(int argc, char** argv){
             strcat(str, buff);
             strcat(str, " ");
             break;
-        case 0: //don't break
+        case '/0': //don't break
             stop = 0;
             
             f = (f.ptr==stdin) ? copy(&f) : f;
+            if(f.ptr == stdin){
+                return 1;
+            }
         case 'l':
             sprintf(buff, "%d", line_count(f.ptr));
             strcat(str, buff);
@@ -178,7 +182,7 @@ int main(int argc, char** argv){
             break;
         default:
             fprintf(stderr, "sorry, I don't know what to count. Use -c for bytes, -l for lines, -w for words, -m for charaters, and do not specify to print the first three.\n");
-            return 0;
+            return 3;
     }
     strcat(str, f.name);
     if(f.ptr != stdin){
