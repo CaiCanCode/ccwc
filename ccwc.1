@@ -1,0 +1,69 @@
+." This is the manual entry for ccwc (my own wc) because it didn't feel right to make a tool (even a simple tool) without one. Time to learn a lot of macros I guess
+
+.TH ccwc 1 "22 December 2023" "Version 1.1"
+
+.SH NAME
+ccwc - my own wc
+
+.SH SYNOPSIS
+.BR "ccwc " [ -l | -w | -c | -m "] "
+.RI [ filname ]
+
+.SH DESCRIPTION
+.BR "ccwc " "is a simple line/word/size/character counter similar to " wc
+.PP
+.RI "If no " "option " "is selected, " 
+.BR "ccwc " "prints (to " 
+.IR stdout ") the line count, word count, and size (in bytes) in that order."
+.PP
+.RI "If no " "filename " "is provided, " 
+.BR "ccwc " "reads from " 
+.IR stdin ". " filename ", if provided, is also printed."
+
+.SH OPTIONS
+.B -l 
+.PP
+.BR "-l " "means display the number of lines in the provided "
+.IR "filename " "or " "stdin " "if " "filename " "is not specified. Lines are assumed to be seperated by the newline character '\n'. " "filename" ", if provided, is also printed."
+.PP
+.B -w
+.PP
+.BR "-w " "means display the number of words in the provided "
+.IR "filename " "or " "stdin " "if " "filename " "is not specified. A word is defined as whitespace (or the beggining of a file) followed by one or more non-whitespace characters. " "filename" ", if provided, is also printed."
+.PP
+.B -c
+.PP
+.BR "-c " "means display size (in bytes) of the provided "
+.IR "filename " "or " "stdin " "if " "filename " "is not specified. " "filename" ", if provided, is also printed."
+.PP
+.B -m
+.PP
+.BR "-m " "means display the number of characters in the provided "
+.IR "filename " "or " "stdin " "if " "filename " "is not specified. Characters are assumed to be " "UTF-8 " "encoded. " "filename" ", if provided, is also printed."
+.PP
+.B -
+.PP
+.RB "If no option is specified, " "-l -w -c " "option results will be displayed in that order. " 
+.IR filename ", if provided, is also printed."
+
+.SH "EXIT STATUS"
+.BR "0 " "Successful program execution."
+.PP
+.BR "1 " "File error."
+.PP
+.BR "2 " "Wrong number of arguments."
+.PP
+.BR "3 " "Invalid option provided."
+
+.SH BUGS
+.BR "wc " "seems to be more general. " "ccwc " "can only understand plaintext right now."
+
+.SH AUTHOR
+Written by Michaiah J. Williams - <mailto:michaiah.williams2004@gmail.com>
+
+.SH "SEE ALSO"
+
+.BR cw (1)
+.PP
+<https://github.com/CaiCanCode/ccwc>
+
