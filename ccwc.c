@@ -13,32 +13,15 @@
 #include <ctype.h>
 #include <stdlib.h>
 
+#define MAX_OPTIONS 4
+
 //not strictly necessary but better for organization
 typedef struct file{
     FILE* ptr;
     char* name;
 }file;
 
-int character_count(FILE* f){
-    int count = 0;
-    while(fgetc(f) != EOF){
-        count++;    
-    }
-    return count;
-}
-
 //theory: don't count bytes in the form 10xxxxxx (based on UTF-8 standard)
-int multibyte_character_count(FILE* f){
-    int count = 0;
-    char ch = fgetc(f);
-    while(ch != EOF){
-        if(ch > -64){
-            count++; 
-        }   
-        ch = fgetc(f);
-    }
-    return count;
-}
 
 /*
     theory: a space character (or the beggining of the file) followed by a non-spce character constitutes a word. 
@@ -54,141 +37,92 @@ int multibyte_character_count(FILE* f){
     World" is 2 words (newline)
     "Hello  World!" is 2 words (tab)
 */
-int word_count(FILE* f){
-    int count = 0;
-    char prev = ' ';
-    char cur = fgetc(f);
-    while(cur != EOF){
-        if(isspace(prev) && !isspace(cur)){
-            count++;        
-        }
-        prev = cur;
-        cur = fgetc(f);
-    }
-    return count;
-}
 
 //Theory: the number of lines is equal to the number of newlines (could be wrong)
-int line_count(FILE* f){
+
+//order is m, l, w, c; data has size MAX_OPTIONS
+void count(FILE* f, int* data){
+    int char_count = 0;
+    int line_count = 0;
+    int word_count = 0;
     int count = 0;
+    char prev = ' ';
     char ch = fgetc(f);
     while(ch != EOF){
         if(ch == '\n'){
-            count++;        
+            line_count++;        
         }
+        if(isspace(prev) && !isspace(ch)){
+            word_count++;
+        }
+        if(ch > -64){
+            char_count++; 
+        } 
+        count++;
+        prev = ch;
         ch = fgetc(f);    
     }
-    return count;
+    *data++ = char_count;
+    *data++ = line_count;
+    *data++ = word_count;
+    *data = count;
 }
 
 /****************************************************************************************/
-//these next two functions are not strictly necessary but they make main cleaner
+//this next function is not strictly necessary but they make main cleaner
 
 file get_filename(int argc, char** argv){
     file f;
-    int idx = 2;
-    switch (argc){
-        case 1: //break statement not needed due to return
-            f.ptr = stdin;
-            f.name = "";
+    for(int i = 1; i < argc; i++){
+        if(*(argv[i]) != '-'){
+            f.name = argv[i];
+            f.ptr = fopen(f.name, "r");
             return f;
-        case 2: //break statement not needed because why write the same code
-            if(*(argv[1]) == '-'){
-                f.ptr = stdin;
-                f.name = "";
-                return f;
-            }
-            idx = 1;
-        case 3:
-            f.ptr = fopen(argv[idx], "r");
-            f.name = argv[idx];
-            break;
-        default:
-            fprintf(stderr, "Sorry, we only support 0 or 1 arguments and 0 or 1 options at this time. If I haven't written a manual entry yet I'll definitely do so later.\n");
-            exit(2);
+        }
     }
-    if(!f.ptr){
-        fprintf(stderr, "couldn't open file\n");
-        exit(1);
-    }
+    f.ptr = stdin;
+    f.name = ""; //should be ok because this is in read only memory
     return f;
 }
 
-char get_option(int argc, char** argv){
-    if(argc > 1 && *(argv[1]) == '-'){
-        return (argv[1])[1];
+//buff has size MAX_OPTIONS + 1 (for the null terminator)
+void get_options(int argc, char** argv, char* buff){
+    int idx = 0;
+    for(int i = 1; i < argc; i++){
+        if(*(argv[i]) == '-'){
+            buff[idx] = (argv[i])[1];
+            idx++;        
+        }
+        if(idx >= MAX_OPTIONS){
+            fprintf(stderr, "Sorry, too many options entered. ");
+        }
     }
-    return '/0';
-}
-
-file copy(file* f){
-    file temp;
-    temp.name = f->name;
-    temp.ptr = tmpfile();
-    if(!temp.ptr){
-        fprintf(stderr, "Error creating temporary file\n");
-        return *f;
+    if(!idx){
+        *buff++ = 'l';
+        *buff++ = 'w';
+        *buff = 'c';
     }
-    char ch = fgetc(f->ptr);
-    while(ch != EOF){
-        fputc(ch, temp.ptr);
-        ch = fgetc(f->ptr);
-    }
-    fclose(f->ptr);
-    rewind(temp.ptr);
-    return temp;
 }
 
 int main(int argc, char** argv){
     file f = get_filename(argc, argv);
-    char str[300] = ""; //probably big enough
-    char buff[30]; //definitely big enough
-    int stop = 1;
-    switch (get_option(argc, argv)){
-        case 'm':
-            sprintf(buff, "%d", multibyte_character_count(f.ptr));
-            strcat(str, buff);
-            strcat(str, " ");
-            break;
-        case '/0': //don't break
-            stop = 0;
-            
-            f = (f.ptr==stdin) ? copy(&f) : f;
-            if(f.ptr == stdin){
-                return 1;
-            }
-        case 'l':
-            sprintf(buff, "%d", line_count(f.ptr));
-            strcat(str, buff);
-            strcat(str, " ");
-            if(stop){
-                break;
-            }else{
-                rewind(f.ptr);
-            }
-        case 'w':
-            sprintf(buff, "%d", word_count(f.ptr));
-            strcat(str, buff);
-            strcat(str, " ");
-            if(stop){
-                break;
-            }else{
-                rewind(f.ptr);
-            }
-        case 'c':
-            sprintf(buff, "%d", character_count(f.ptr));
-            strcat(str, buff);
-            strcat(str, " ");
-            break;
-        default:
-            fprintf(stderr, "sorry, I don't know what to count. Use -c for bytes, -l for lines, -w for words, -m for charaters, and do not specify to print the first three.\n");
-            return 3;
+    int data[MAX_OPTIONS];
+    char options[MAX_OPTIONS + 1] = {0};
+    count(f.ptr, data);
+    get_options(argc, argv, options);
+    if(strchr(options, 'm')){
+        printf("%d ", *data);
     }
-    strcat(str, f.name);
-    if(f.ptr != stdin){
-        fclose(f.ptr);
+    if(strchr(options, 'l')){
+        printf("%d ", data[1]);
     }
-    printf("%s\n", str);
+    if(strchr(options, 'w')){
+        printf("%d ", data[2]);
+    }
+    if(strchr(options, 'c')){
+        printf("%d ", data[3]);
+    }
+    printf("%s\n", f.name);
     return 0;
 }
 
