@@ -96,8 +96,9 @@ void get_options(int argc, char** argv, char* buff){
             buff[idx] = (argv[i])[1];
             idx++;        
         }
-        if(idx >= MAX_OPTIONS){
+        if(idx > MAX_OPTIONS){
             fprintf(stderr, "Sorry, too many options entered\n");
+            exit(2);
         }
     }
     if(!idx){
