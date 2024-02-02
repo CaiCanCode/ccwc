@@ -15,6 +15,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 
+//to avoid magic constants
 #define MAX_OPTIONS 4
 
 //not strictly necessary but better for organization
@@ -96,7 +97,7 @@ void get_options(int argc, char** argv, char* buff){
             idx++;        
         }
         if(idx >= MAX_OPTIONS){
-            fprintf(stderr, "Sorry, too many options entered. ");
+            fprintf(stderr, "Sorry, too many options entered\n");
         }
     }
     if(!idx){
@@ -127,5 +128,3 @@ int main(int argc, char** argv){
     printf("%s\n", f.name);
     return 0;
 }
-
-// activate with "gcc -Wall -std=c18 -o name name.c"
