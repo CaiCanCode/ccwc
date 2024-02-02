@@ -6,6 +6,8 @@
    M. Williams - 2023-12-19
 
    version 1.1 - 2023-12-22
+
+   version 1.2 - 2024-02-01
 */
 
 #include <stdio.h>
